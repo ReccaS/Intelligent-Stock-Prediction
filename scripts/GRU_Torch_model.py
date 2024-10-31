@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 
 class GRUModel(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size):
@@ -46,6 +47,8 @@ def train_gru_model(X_train, y_train, X_test, y_test, n_timesteps, n_features,
 
     Returns:
     - y_pred (np.ndarray): Predicted target values for the test set.
+    - train_loss_history (list): Training loss over epochs.
+    - val_loss_history (list): Validation loss over epochs.
     - model: The trained PyTorch GRU model.
     """
     # Convert data to torch tensors
@@ -61,6 +64,10 @@ def train_gru_model(X_train, y_train, X_test, y_test, n_timesteps, n_features,
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    # Lists to track losses
+    train_loss_history = []
+    val_loss_history = []
+
     # Training loop
     for epoch in range(epochs):
         model.train()
@@ -74,8 +81,18 @@ def train_gru_model(X_train, y_train, X_test, y_test, n_timesteps, n_features,
         loss.backward()
         optimizer.step()
 
+        # Save training loss
+        train_loss_history.append(loss.item())
+
+        # Validation phase
+        model.eval()
+        with torch.no_grad():
+            val_outputs = model(X_test)
+            val_loss = criterion(val_outputs, y_test)
+            val_loss_history.append(val_loss.item())
+
         if (epoch+1) % 5 == 0:
-            print(f'Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}')
+            print(f'Epoch [{epoch+1}/{epochs}], Training Loss: {loss.item():.4f}, Validation Loss: {val_loss.item():.4f}')
 
     # Testing phase
     model.eval()
@@ -84,4 +101,4 @@ def train_gru_model(X_train, y_train, X_test, y_test, n_timesteps, n_features,
         test_loss = criterion(y_pred, y_test)
         print(f'Test Loss: {test_loss.item():.4f}')
     
-    return y_pred.numpy(), model
+    return y_pred.numpy(), train_loss_history, val_loss_history, model

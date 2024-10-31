@@ -47,10 +47,11 @@ def gru_model(X_train, y_train, X_test, y_test, n_timesteps, n_features, num_lay
     # Compile the model with the Adam optimizer and mean squared error loss
     model.compile(optimizer=Adam(learning_rate=learning_rate), loss='mse')
 
-    # Train the model with the provided epochs and batch size
-    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=2)
+    # Train the model with the provided epochs and batch size, and capture the history
+    history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=epochs, batch_size=batch_size, verbose=2)
 
     # Predict and evaluate
     y_pred = model.predict(X_test)
     
-    return y_pred, model
+    return y_pred, history, model
+
